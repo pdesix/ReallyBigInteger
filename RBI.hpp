@@ -18,7 +18,7 @@ namespace Desant
 	/// <param name="number">Number of which digits will be counted.</param>
 	/// <returns>Number of given number's digits.</returns>
 	template<class T>
-	unsigned number_of_digits(T number) noexcept
+	unsigned length(T number) noexcept
 	{
 		static_assert(std::is_arithmetic<T>::value, "T must be an arithmetic type.");
 		return static_cast<unsigned>(std::floor(std::log10(number))+1.0);
@@ -26,7 +26,7 @@ namespace Desant
 
 	class RBI
 	{
-		typedef int vector_size_t; // cannot be any unsigned type including std::vector<unsigned long long>::size_type because then some decreasing loops won't work and goes from 0u to max value for std::vector<unsigned long long>::size_type and never ends, often causing undefined behaviour
+		typedef std::vector<unsigned long long>::size_type vector_size_t; // cannot be any unsigned type including std::vector<unsigned long long>::size_type because then some decreasing loops won't work and goes from 0u to max value for std::vector<unsigned long long>::size_type and never ends, often causing undefined behaviour
 	public:
 
 		/// <summary>Performs internal string validation and returns number as string.</summary>
@@ -34,24 +34,10 @@ namespace Desant
 		std::string string() noexcept;
 
 	#pragma region operators
-		std::ostream& operator <<(std::ostream& stream) noexcept
-		{
-			return stream << string();
-		}
+		std::ostream& operator <<(std::ostream& stream) noexcept;
+		std::istream& operator >>(std::istream& stream);
 
-		std::istream& operator >>(std::istream& stream)
-		{
-			std::string buffer;
-			stream >> buffer;
-			update(buffer);
-			return stream;
-		}
-
-		RBI& operator =(const std::string& v)
-		{
-			update(v);
-			return *this;
-		}
+		RBI& operator =(const std::string& v);
 
 		template<typename T>
 		RBI& operator =(const T& v)
@@ -114,7 +100,7 @@ namespace Desant
 			static_assert(std::is_unsigned<T>::value, "T must be an unsigned arithmetic type.");
 			RBI copy{ *this };
 			if (copy.m_digits[0] += static_cast<unsigned long long>(v) >= RBI_INFINITY) 
-				copy.recheck();
+				copy.check_values();
 			return copy;
 		}
 		template<typename T>
@@ -122,7 +108,7 @@ namespace Desant
 		{
 			static_assert(std::is_unsigned<T>::value, "T must be an unsigned arithmetic type.");
 			if (m_digits[0] + v >= RBI_INFINITY)
-				recheck();
+				check_values();
 			return *this;
 		}
 
@@ -142,7 +128,7 @@ namespace Desant
 			RBI copy{ *this };
 			for (unsigned long long & val : copy.m_values)
 				val *= v;
-			copy.recheck();
+			copy.check_values();
 			return copy;
 		}
 
@@ -152,7 +138,7 @@ namespace Desant
 			RBI copy{ *this };
 			for (unsigned long long & val : copy.m_values)
 				val *= v;
-			copy.recheck();
+			copy.check_values();
 			return copy;
 		}
 
@@ -225,11 +211,11 @@ namespace Desant
 		RBI(const std::vector<unsigned long long>& value) noexcept;
 		
 		/// <summary><b>Performs string validation</b> and updates RBI to given string.</summary>
-		void update(const std::string& intval);
-		void validate_string(const std::string& string);
+		void set_value(const std::string& intval);
+		void validate_value(const std::string& string);
 		void update_string() noexcept;
-		void start_check() noexcept;
-		void recheck() noexcept;
+		void rearrange_values() noexcept;
+		void check_values() noexcept;
 		std::stringstream revert_string(std::string x) noexcept;
 
 		int m_control;
@@ -244,7 +230,7 @@ namespace Desant
 			friend class RBI;	
 		public:
 			SBI(const std::vector<unsigned long long>& x) noexcept : m_values(x) { }
-			SBI(const RBI& x) noexcept : m_values{ x.m_values } { recheck(); }
+			SBI(const RBI& x) noexcept : m_values{ x.m_values } { check_values(); }
 			std::string string() noexcept;
 			RBI operator*(const SBI& v) noexcept;
 		private:
@@ -255,7 +241,7 @@ namespace Desant
 			}
 
 			std::vector<unsigned long long> m_values;
-			void recheck() noexcept;
+			void check_values() noexcept;
 		};
 #pragma endregion
 	};
