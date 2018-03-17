@@ -21,9 +21,6 @@
     <ClCompile Include="RBI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RBIUT.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RBI.hpp">
