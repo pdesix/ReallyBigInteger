@@ -174,20 +174,25 @@ return (v.m_values != m_values);
 
 	void RBI::update_string() noexcept
 	{
-	std::ostringstream oss;
-	oss << m_values[m_values.size() - 1];
-	for (auto i{ m_values.end() - 1 }; i != m_values.begin()-1; i--)
-	{
-		for (long long x{ RBI_INFINITY / 10 }; x >= 10; x /= 10)
+		std::ostringstream oss;
+		oss << m_values[m_values.size() - 1];
+		vector_size_t i{ m_values.size()-1u };
+		if (m_values.size() > 1u)
 		{
-			if (*i < static_cast<unsigned long long>(x))
-				oss << "0";
-			else
-				break;
+			do
+			{
+				i--;
+				for (long long x{ RBI_INFINITY / 10 }; x >= 10; x /= 10)
+				{
+					if (m_values[i] < static_cast<unsigned long long>(x))
+						oss << "0";
+					else
+						break;
+				}
+				oss << m_values[i];
+			} while (i != 0u);
 		}
-		oss << *i;
-	}
-	m_string = oss.str();
+		m_string = oss.str();
 	}
 
 	RBI::vector_size_t RBI::digits() noexcept
@@ -247,39 +252,55 @@ return (v.m_values != m_values);
 		std::vector<unsigned long long>& summary = end_values[counter];
 
 		// Adding columns from specified rows to summary
-		for (auto i{ end_values.end() - 1 }; i >= end_values.begin(); i--)
+		vector_size_t it{ end_values.size()-1 };
+		do
 		{
-			if ((i - end_values.begin()) == counter) continue;
-			for (auto a{ summary.begin() }; a < summary.end(); a++)
+			if (it == counter)
 			{
-				if (static_cast<vector_size_t>(a - summary.begin()) >= (*i).size()) break;
-				*a += (*i)[(a - summary.begin())];
+				if (it == 0u) break;
+				it--;
+				continue;
 			}
-		}
+			for (vector_size_t a{ 0 }; a < summary.size(); a++)
+			{
+				if (a >= end_values[it].size()) break;
+				summary[a] += end_values[it][a];
+			}
+			if (it == 0u) break;
+			it--;
+		} while(true);
 
 		// Checking if any digit isn't bigger than LOW_RBI_INFINITY
-		for (auto i{ summary.begin() }; i < summary.end(); i++)
+		vector_size_t xit{ summary.size() };
+		do
 		{
-			if (*i >= LOW_RBI_INFINITY)
+			xit--;
+			if (summary[xit] >= LOW_RBI_INFINITY)
 			{
-				unsigned long long overflow{ static_cast<unsigned long long>(floor((*i) / LOW_RBI_INFINITY)) };
-				*i -= overflow * LOW_RBI_INFINITY;
-				if (i + 1 == summary.end()) summary.push_back(overflow);
-				else *(i + 1) += overflow;
+				unsigned long long overflow{ static_cast<unsigned long long>(floor(summary[xit] / LOW_RBI_INFINITY)) };
+				summary[xit] -= overflow * LOW_RBI_INFINITY;
+				if (xit + 1 == summary.size()) summary.push_back(overflow);
+				else summary[xit + 1] += overflow;
 			}
-		}
+		} while (xit != 0u);
 
 		// Sending all values to stream and creating RBI from stringstream
 		std::stringstream outstream;
 		outstream << summary[summary.size() - 1];
-		for (auto i{ summary.end() - 2 }; i >= summary.begin(); i--)
+		if (summary.size() != 1u)
 		{
-			for (int p{ LOW_RBI_INFINITY / 10 }; p >= 10; p /= 10)
+			it = summary.size() - 1u;
+			do
 			{
-				if (*i < p) outstream << 0;
-				else break;
-			}
-			outstream << *i;
+				it--;
+				for (int p{ LOW_RBI_INFINITY / 10 }; p >= 10; p /= 10)
+				{
+					if (summary[it] < p) outstream << 0;
+					else break;
+				}
+				outstream << summary[it];
+				if (it == 0u) break;
+			} while (true);
 		}
 		return RBI{ outstream.str() };
 	}
@@ -288,14 +309,19 @@ return (v.m_values != m_values);
 	{
 		std::stringstream stringbuffer;
 		stringbuffer << m_values[m_values.size() - 1];
-		for (auto i{ m_values.end() - 2 }; i != m_values.begin()-1; i--)
+		if (m_values.size() > 1u)
 		{
-			for (unsigned long long j{ RBI_INFINITY / 10 }; j >= 10; j /= 10)
+			vector_size_t i{ m_values.size() };
+			do
 			{
-				if (*i < j) stringbuffer << 0;
-				else break;
-			}
-			stringbuffer << *i;
+				i--;
+				for (unsigned long long j{ RBI_INFINITY / 10 }; j >= 10; j /= 10)
+				{
+					if (m_values[i] < j) stringbuffer << 0;
+					else break;
+				}
+				stringbuffer << m_values[i];
+			} while (i != 0u);
 		}
 
 		int counter = 0;
