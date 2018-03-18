@@ -7,8 +7,6 @@
 #include <type_traits>
 #include <vector>
 
-
-
 namespace Desant
 {
 	/// <summary>Defines max value of single digit in RBInteger object.</summary>
@@ -39,6 +37,7 @@ namespace Desant
 
 		RBI& operator =(const std::string& v);
 
+
 		template<typename T>
 		RBI& operator =(const T& v)
 		{
@@ -55,7 +54,6 @@ namespace Desant
 			m_values.push_back(v);
 			return *this;
 		}
-
 
 		bool operator !=(const RBI& v) noexcept;
 		bool operator ==(const RBI& v) noexcept;
